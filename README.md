@@ -25,3 +25,12 @@ Have a master BOM type that then is processed to produce the other necessary typ
 Population options and different component choices are often designed into a single board. The master bom
 contains a sub assembly field to note this. An empty field indicates the default choice and a value 
 will overload this option for that subtype. This can be used for DNP also.
+
+## Goals
+- make file to produce and check all the needed targets for a PCB
+  - PCB manufacturing
+  - BOM Ordering
+  - Assembly documents
+  - Check design rules
+  - Generate different assembly type for the same board
+  - Check all files are in zip
