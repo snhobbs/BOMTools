@@ -34,3 +34,6 @@ will overload this option for that subtype. This can be used for DNP also.
   - Check design rules
   - Generate different assembly type for the same board
   - Check all files are in zip
+
+## Design BOM Workflow
+- During the schematic design note down the ref des, value, and requirements note
