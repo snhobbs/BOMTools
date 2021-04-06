@@ -3,8 +3,11 @@ https://github.com/xesscorp/kicad-3rd-party-tools#bom-tools
 Have a master BOM type that then is processed to produce the other necessary types. This can be created from a data base and then altered.
 
 ## BOM Types
+- Big Bad BOM:
+  - Contains all parts that we have.
+  - This is currently generated from a database
 - Master BOM:
-  - Line number, ref des, internal part number, manufacturer, manufacturers part number, supplier, supplier part number, description
+  - Line number, ref des, internal part number, manufacturer, manufacturers part number, sub assembly
 - Ordering/Budget BOM: Ordered by part type.
   - Line Number, Internal Part Number, Manufacturer, Manufacturers Number, Ref Des List, Quantity, Supplier, Supplier Part Number, Price
 - Supplier BOM:
@@ -17,3 +20,8 @@ Have a master BOM type that then is processed to produce the other necessary typ
   - Ref Des, internal part number, value, footprint
 - Net list: Node connections
 - KiCost BOM
+
+## Sub Assemblies
+Population options and different component choices are often designed into a single board. The master bom
+contains a sub assembly field to note this. An empty field indicates the default choice and a value 
+will overload this option for that subtype. This can be used for DNP also.

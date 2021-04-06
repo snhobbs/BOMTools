@@ -1,16 +1,30 @@
+'''
+bom_compiler.py
+Takes a master BOM and generates different types
+'''
 import click, os, pandas, io, csv
 
-def sort_by_parts(df):
-    df.sort_values(by=["mfr-num"])
-    data = {"mfr-num": [], "ref-des": []}
-    for manu_num in df["mfr-num"].unique():
-        ref_des_list = []
-        for i, row in df[df["mfr-num"]==manu_num].iterrows():
-            ref_des_list.append(row["ref-des"])
+'''
+Group a dataframe by the column given.
+The cluster column will be made as a list. The sort_by column determines the group.
+Shared values are grouped and the other values in the list are filled in
+with the first entry found.
+'''
+def group_by(df, sort_by, cluster):
+    rows = []
+    for entry in df[sort_by].unique():
+        filtered_df = df[df[sort_by]==entry]
+        row = next(filtered_df.iterrows())[-1] # use the first matching row for the output row data
+        cluster_list = []
+        for i, row in filtered_df.iterrows():
+            cluster_list.append(row[cluster])
 
-        data["mfr-num"].append(manu_num)
-        data["ref-des"].append(ref_des_list)
-    return pandas.DataFrame(data)
+        row[cluster] = cluster_list
+        rows.append(row)
+    return pandas.DataFrame(rows)
+
+def sort_by_parts(df):
+    return group_by(df, "mfr-num", "ref-des")
 
 
 class Bom:
