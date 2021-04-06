@@ -6,15 +6,13 @@ Use the name of the columns and the ref des
 Get row by ref des in dbom
 '''
 import pandas as pd
+import click
 
 quantity_col = "Quantity"
 price_col = "Extended Price"
 unit_price_col = "Unit Price"
 eoi_part_col = "Customer Reference"
 ref_des_col = "Reference Designator"
-
-eda_file = "edaBom.csv"
-dbom_file = "Timestrech_Rev0_0_7/TimeStretcher_0_0_7_DigikeyBom_8396826.xlsx"
 
 # Parse bom into
 def GetRowIndexByRefDes(dbom, ref_des):
@@ -28,7 +26,7 @@ def SetupBomFrame(dbom):
         dbom[quantity_col] = 0
         dbom[price_col] = 0
 
-try:
+def read(eda_file, dbom_file, output_bom):
     eda = pd.read_csv(eda_file, delimiter = ";")
     dbom = pd.read_excel(dbom_file)
     SetupBomFrame(dbom)
@@ -69,7 +67,16 @@ try:
         refs.extend(eda_refs)
         dbom.loc[bom_line, [ref_des_col]] = ",".join(refs)
 
-    dbom.to_excel("Timestrech_Rev0_0_7/TimeStretcher_0_0_7_OrderingBom.xlsx")
+    dbom.to_excel(dbom_file)
 
-except:
-    raise
+#eda_file = "edaBom.csv"
+#dbom_file = "Timestrech_Rev0_0_7/TimeStretcher_0_0_7_DigikeyBom_8396826.xlsx"
+#"Timestrech_Rev0_0_7/TimeStretcher_0_0_7_OrderingBom.xlsx"
+
+@click.command()
+@click.option("--eda", type=str, help="EDA BOM")
+@click.option("--design", type=str, help="Design BOM")
+@click.option("--output", type=str, help="Output BOM")
+def expand_heirarchical_schematic(eda_bom, design_bom, output_bom):
+    read(eda_bom, design_bom, output_bom)
+
