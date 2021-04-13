@@ -1,8 +1,8 @@
 # Master BOM Example
 # Hash lines are comments
 # Line number, ref des, internal part number, manufacturer, manufacturers part number, supplier, supplier part number, description
-line; ref-des; internal-num; mfr; mfr-num; supplier; supplier-num; description  
-1; C1; C06-100N-00; KEMET; C0603C104M5RACTU; Digikey; 1; "CAP, CER, 100.0nF, 20.0%,, 50.0V, X7R,,,, 0603"
-2; C2; C06-100N-00; KEMET; C0603C104M5RACTU; Digikey; 1; "CAP, CER, 100.0nF, 20.0%,, 50.0V, X7R,,,, 0603"
-3; D1; D00-S002-01; NEXPERIA; "PMEG4010ETR,115"; Mouser; 1; "DIO,, SCHOTTKY,, 40.0V, W, 1.0A,,,, Low Leak, SMT"
-4; R1; R06-0R00-00; ROHM; MCR03ERTJ000; Newark; 1; "RES,, JUMPER, 0, 0%, 0W, 0, JUMPER, 0,,, 0603"
+line; ref-des; internal-num; mfr; mfr-num; supplier; supplier-num; assembly; description  
+1; C1; C06-100N-00; KEMET; C0603C104M5RACTU; Digikey; 1; 1; "CAP, CER, 100.0nF, 20.0%,, 50.0V, X7R,,,, 0603"
+2; C2; C06-100N-00; KEMET; C0603C104M5RACTU; Digikey; 1; 1; "CAP, CER, 100.0nF, 20.0%,, 50.0V, X7R,,,, 0603"
+3; D1; D00-S002-01; NEXPERIA; "PMEG4010ETR,115"; Mouser; 1; 1; "DIO,, SCHOTTKY,, 40.0V, W, 1.0A,,,, Low Leak, SMT"
+4; R1; R06-0R00-00; ROHM; MCR03ERTJ000; Newark; 1; 1; "RES,, JUMPER, 0, 0%, 0W, 0, JUMPER, 0,,, 0603"

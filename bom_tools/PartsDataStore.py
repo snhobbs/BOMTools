@@ -8,9 +8,11 @@ an internal part number for that.
 This could be an accessor for a database
 '''
 class PartsDataStore:
-    def __init__(self):
-        self._df = pd.DataFrame({"pn":[], "manu-name":[], "manu-num":[]})
+    def __init__(self, df=None):
+        if df is None:
+            df = pd.DataFrame({"pn":[], "mfr":[], "mfr-num":[]})
+        self._df = pd.DataFrame(df)
 
     '''return the lines found that matches the value in the given column'''
     def get_part_line(self, code, column="pn"):
-        return self._df[self._df["column"] == code]
+        return (self._df.loc[self._df[column] == code])
