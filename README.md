@@ -34,3 +34,4 @@ will overload this option for that subtype. This can be used for DNP also.
   - Check design rules
   - Generate different assembly type for the same board
   - Check all files are in zip
+  - Cost estimates
