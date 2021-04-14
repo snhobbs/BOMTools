@@ -34,11 +34,8 @@ def generate_kicost_bom(master: str) -> list:
 def gr1():
     pass
 
-'''
-Three columns manf#, refs, qty
-'''
 @click.option("--master", "-m", type=str, required=True, help="Master BOM file")
-@gr1.command()
+@gr1.command(help='''Three columns manf#, refs, qty''')
 def kicost(master):
     lines = generate_kicost_bom(master)
     fname = master + 'kicost.csv'
@@ -47,7 +44,7 @@ def kicost(master):
 
 @click.option("--master", "-m", type=str, required=True, help="Master BOM file")
 @click.option("--assembly", "-a", type=str, required=True, help="Assembly name")
-@gr1.command(help='''Expand a master bom into an assembly BOM''')
+@gr1.command(help='''Expand a master bom into an assembly BOM. Blank assembly entries are included, a value in the assembly over rides the default.''')
 def assembly(master, assembly):
     parts, bom = read_bom_to_parts_store(master)
     assembly_bom = bom.get_assembly(assembly)
@@ -56,7 +53,7 @@ def assembly(master, assembly):
 
 @click.option("--master", "-m", type=str, required=True, help="Master BOM file")
 @click.option("--parts", "-p", type=str, required=True, help="Parts data store")
-@gr1.command(help='''Take a bare BOM and expand the part details from a part store''')
+@gr1.command(help='''Take a bare Master BOM and expand the part details from a part store to generate a master BOM''')
 def fill(master, parts):
     bom = read_bare_bom(master)
     parts = read_parts_store(parts)

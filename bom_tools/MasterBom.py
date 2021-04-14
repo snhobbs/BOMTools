@@ -55,10 +55,5 @@ class MasterBom:
     '''Exclude all parts not marked for this assembly'''
     def get_assembly(self, assembly):
         # Cycle through selecting the parts marked explicitly
-        filtered_df = self._df.loc[(self._df["assembly"] == assembly) | (self._df["assembly"] == "")]
-
+        filtered_df = self._df.loc[(self._df["assembly"] == assembly) | (self._df["assembly"].isnull())]
         return remove_overlapping_ref_des(filtered_df)
-
-
-
-
