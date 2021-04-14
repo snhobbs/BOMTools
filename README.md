@@ -37,4 +37,9 @@ will overload this option for that subtype. This can be used for DNP also.
   - Cost estimates
 
 ## Design BOM Workflow
-- During the schematic design note down the ref des, value, and requirements note
+- During the schematic design note down the ref des, value, and requirements note. This could become the design BOM
+- as the parts are chosen.
+
+## Parts Database
+- Notes on parts and the barest additional data should be stored in a database. This could be a flat file loaded into memory or an actual database.
+- A flat file has the advantage of being mergable with git. It is unlikely that the file will grow to the point that it will be impractical.

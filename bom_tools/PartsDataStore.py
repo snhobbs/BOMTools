@@ -5,7 +5,11 @@ import pandas as pd
 This could be the manufacturers number but there could be multiples of that. Store
 an internal part number for that.
 
-This could be an accessor for a database
+This could be an accessor for a database or a flat file or whatever
+- Internal part number: pn
+- Manufacturer name: mfr
+- Manfuacturers number: mfr-num
+- Notes/Description: notes
 '''
 class PartsDataStore:
     def __init__(self, df=None):
