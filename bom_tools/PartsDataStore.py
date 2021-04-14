@@ -20,3 +20,6 @@ class PartsDataStore:
     '''return the lines found that matches the value in the given column'''
     def get_part_line(self, code, column="pn"):
         return (self._df.loc[self._df[column] == code])
+
+    def __len__(self):
+        return len(self._df)

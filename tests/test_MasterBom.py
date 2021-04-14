@@ -28,3 +28,52 @@ class TestMasterBom(unittest.TestCase):
         mb.add_line((1,12,3))
         self.assertTrue(mb.is_legal())
 
+    def test_get_assembly_no_overlap_single_assembly(self):
+        mb = MasterBom()
+        mb.add_line(("1",12,""))
+        mb.add_line(("2",12,""))
+        mb.add_line(("3",12,""))
+        mb.add_line(("4",12,""))
+        mb.add_line(("5",12,""))
+        mb.add_line(("6",12,""))
+        mb.add_line(("7",12,""))
+
+        assembly = mb.get_assembly(12)
+        self.assertEqual(len(assembly), len(mb))
+
+    def test_get_assembly_no_overlap_multiple_assembly(self):
+        mb = MasterBom()
+        mb.add_line(("1",12,""))
+        mb.add_line(("2",12,""))
+        mb.add_line(("3",12,""))
+        mb.add_line(("4",12,""))
+        mb.add_line(("5",12,""))
+        mb.add_line(("6",12,""))
+        mb.add_line(("7",12,""))
+        mb.add_line(("8",11,12))
+        mb.add_line(("8",1,1))
+
+        assembly = mb.get_assembly(12)
+        self.assertEqual(len(assembly), 8)
+
+        assembly = mb.get_assembly(1)
+        self.assertEqual(len(assembly), 8)
+
+    def test_get_assembly_overlap_multiple_assembly(self):
+        mb = MasterBom()
+        mb.add_line(("1",12,""))
+        mb.add_line(("2",12,""))
+        mb.add_line(("3",12,""))
+        mb.add_line(("4",12,""))
+        mb.add_line(("5",12,""))
+        mb.add_line(("6",12,""))
+        mb.add_line(("7",12,""))
+        mb.add_line(("7",1,1))
+        mb.add_line(("8",11,12))
+        mb.add_line(("8",1,1))
+
+        assembly = mb.get_assembly(12)
+        self.assertEqual(len(assembly), 8)
+
+        assembly = mb.get_assembly(1)
+        self.assertEqual(len(assembly), 8)

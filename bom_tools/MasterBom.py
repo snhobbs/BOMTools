@@ -10,6 +10,17 @@ import pandas as pd # type: ignore
 import numpy as np
 from bom_tools import tools
 
+'''Remove the ref-des that are duplicates and have a universal config'''
+def remove_overlapping_ref_des(df):
+    if df["ref-des"].is_unique:
+        return df
+    for i, row in df.iterrows():
+        ref = str(row["ref-des"])
+        assembly = str(row["assembly"])
+        if list(df["ref-des"]).count(ref) > 1 and len(assembly) > 0:
+            df = df.drop(df.index[[i]])
+    return df
+
 class MasterBom:
     def __init__(self, df=None):
         if df is None:
@@ -40,3 +51,14 @@ class MasterBom:
     def parts_frame(self):
         assert(self.is_legal())
         return tools.group_by(self._df, "pn", "ref-des")
+
+    '''Exclude all parts not marked for this assembly'''
+    def get_assembly(self, assembly):
+        # Cycle through selecting the parts marked explicitly
+        filtered_df = self._df.loc[(self._df["assembly"] == assembly) | (self._df["assembly"] == "")]
+
+        return remove_overlapping_ref_des(filtered_df)
+
+
+
+

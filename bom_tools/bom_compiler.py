@@ -4,6 +4,12 @@ Takes a master BOM and generates different types.
 '''
 import click
 from bom_tools import tools, read_bom_to_parts_store
+from bom_tools import *
+
+
+class AssemblyBom:
+    def __init__(self, df=None):
+        self._df=df
 
 '''
 Check BOM against a parts list, checks that the BOM is legal and
@@ -13,6 +19,7 @@ def check_bom(master: str) -> bool:
     parts, bom = read_bom_to_parts_store(master)
     return bom.is_legal()
 
+'''format a master bom into the kicost format'''
 def generate_kicost_bom(master: str) -> list:
     parts, bom = read_bom_to_parts_store(master)
     lines = []
@@ -37,6 +44,30 @@ def kicost(master):
     fname = master + 'kicost.csv'
     with open(fname, "w") as f:
         f.write("\n".join(lines))
+
+@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--assembly", "-a", type=str, required=True, help="Assembly name")
+@gr1.command(help='''Expand a master bom into an assembly BOM''')
+def assembly(master, assembly):
+    parts, bom = read_bom_to_parts_store(master)
+    assembly_bom = bom.get_assembly(assembly)
+    fname = os.path.split(os.path.splitext(master)[0])[-1]
+    assembly_bom.to_excel(f'{fname}_Assembly_{assembly}.xlsx')
+
+@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--parts", "-p", type=str, required=True, help="Parts data store")
+@gr1.command(help='''Take a bare BOM and expand the part details from a part store''')
+def fill(master, parts):
+    bom = read_bare_bom(master)
+    parts = read_parts_store(parts)
+    if len(parts._df["pn"][0]) > 11:
+        for _, row in parts._df.iterrows():
+            row["pn"] = "-".join(row["pn"].split("-")[:-1]) # remove last section of part number
+    print(parts._df)
+    bom_df = bom._df
+    bom_df = bom_df.merge(parts._df, on="pn", how="left")
+    fname = os.path.split(os.path.splitext(master)[0])[-1]
+    bom_df.to_excel(f'{fname}_MasterBom.xlsx')
 
 @click.option("--master", "-m", type=str, required=True, help="Master BOM file")
 @gr1.command()
