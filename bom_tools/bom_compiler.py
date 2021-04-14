@@ -23,10 +23,18 @@ def check_bom(master: str) -> bool:
 def generate_kicost_bom(master: str) -> list:
     parts, bom = read_bom_to_parts_store(master)
     lines = []
-    parts_frame = bom.parts_frame()
-    for ref_des, pn in zip(parts_frame["ref-des"], parts_frame["pn"]):
-        mfr_num = parts.get_part_line(pn)["mfr-num"]
-        lines.append("%s,%d,%s"%(mfr_num, len(ref_des), " ".join(ref_des)))
+    full_df = bom._df#.merge(parts._df, how="left", on="pn")
+    print(full_df)
+    grouped = full_df.groupby("pn")
+    for pn, parts in grouped:
+        refs = []
+        for _, part in parts.iterrows():
+            print(part)
+            refs.append(part["ref-des"])
+            mfr_num = part["mfr-num"]#parts.get_part_line(pn)["mfr-num"]
+        line = "%s,%d,%s"%(mfr_num, len(refs), " ".join(refs))
+        #print(line)
+        lines.append(line)
     return lines
 
 
@@ -60,9 +68,8 @@ def fill(master, parts):
     if len(parts._df["pn"][0]) > 11:
         for _, row in parts._df.iterrows():
             row["pn"] = "-".join(row["pn"].split("-")[:-1]) # remove last section of part number
-    print(parts._df)
     bom_df = bom._df
-    bom_df = bom_df.merge(parts._df, on="pn", how="left")
+    bom_df = bom_df.merge(parts._df, on="pn", how="left") # include all DNPs, unknown parts won't cause an error
     fname = os.path.split(os.path.splitext(master)[0])[-1]
     bom_df.to_excel(f'{fname}_MasterBom.xlsx')
 

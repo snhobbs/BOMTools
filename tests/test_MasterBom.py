@@ -1,5 +1,6 @@
 import unittest
 from bom_tools import MasterBom
+import logging
 
 class TestMasterBom(unittest.TestCase):
     def test_add_line(self):
@@ -77,3 +78,17 @@ class TestMasterBom(unittest.TestCase):
 
         assembly = mb.get_assembly(1)
         self.assertEqual(len(assembly), 8)
+
+    def test_parts_bom_grouping(self):
+        mb = MasterBom()
+        mb.add_line(("1",1,None))
+        mb.add_line(("2",1,None))
+        mb.add_line(("3",1,None))
+        mb.add_line(("4",12,None))
+        mb.add_line(("5",3,None))
+        pb = mb.parts_frame()
+        logging.log(0, pb)
+        print(pb)
+        self.assertEqual(len(pb), 3)
+        self.assertEqual(list(pb["ref-des"])[0], 3)
+

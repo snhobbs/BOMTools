@@ -41,16 +41,15 @@ class MasterBom:
                 if type(pt) not in (str, int, float, np.int64, np.float64):
                     return False
         for pt in self._df["assembly"].unique():
-            print(pt, type(pt))
-            #assert(type(pt) is str)
             assembly_df = self._df[self._df["assembly"] == pt]
             if not assembly_df["ref-des"].is_unique:
                 return False
         return True
 
-    def parts_frame(self):
+    def parts_frame(self) -> pd.DataFrame:
         assert(self.is_legal())
-        return tools.group_by(self._df, "pn", "ref-des")
+        return self._df.group_by("pn")
+        #return tools.group_by(self._df, "ref-des", "pn")
 
     '''Exclude all parts not marked for this assembly'''
     def get_assembly(self, assembly):
