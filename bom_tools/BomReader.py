@@ -14,16 +14,16 @@ column_names = {
 
 '''Finds knowns pseudonyms for columns and includes names them correctly for passing as argument'''
 def extract_columns_by_pseudonyms(df, column_names):
+    included = []
     output = {}
-    for column, names in column_names.items():
-        expanded_names = list()
-        expanded_names.extend(pt for pt in names)
-        expanded_names.extend(pt.lower() for pt in names)
-        expanded_names.extend(pt.upper() for pt in names)
-
-        for name in expanded_names:
-            if name in df.columns:
+    for name in df.columns:
+        for column, names in column_names.items():
+            if name.lower() in [pt.lower() for pt in names] or name.lower() == column.lower():            
                 output[column] = df[name]
+                included.append(name)
+    for name in df.columns:
+        if name not in included and name not in output:
+            output[name] = df[name]
     return output
 
 def read_file_to_df(fname: str) -> dict:
@@ -31,7 +31,7 @@ def read_file_to_df(fname: str) -> dict:
     ext = ext.lower()
     if ext == ".csv":
         df = pd.read_csv(fname, header=0, skipinitialspace=True,
-                index_col=0, sep=";", comment="#", quotechar='"',
+                index_col=0, sep=",", comment="#", quotechar='"',
                 quoting=csv.QUOTE_MINIMAL, engine="python")
 
     elif ext in [".xls", ".xlsx", ".xlsm", ".xlsb", ".odf", ".ods",".odt"]:

@@ -69,6 +69,8 @@ def fill(master, parts):
         for _, row in parts._df.iterrows():
             row["pn"] = "-".join(row["pn"].split("-")[:-1]) # remove last section of part number
     bom_df = bom._df
+    print(bom_df.columns)
+    print(parts._df.columns)
     bom_df = bom_df.merge(parts._df, on="pn", how="left") # include all DNPs, unknown parts won't cause an error
     fname = os.path.split(os.path.splitext(master)[0])[-1]
     bom_df.to_excel(f'{fname}_MasterBom.xlsx')
