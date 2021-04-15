@@ -48,7 +48,7 @@ class MasterBom:
 
     def parts_frame(self) -> pd.DataFrame:
         assert(self.is_legal())
-        return self._df.group_by("pn")
+        return self._df.groupby("pn")
         #return tools.group_by(self._df, "ref-des", "pn")
 
     '''Exclude all parts not marked for this assembly'''

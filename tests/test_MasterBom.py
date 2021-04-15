@@ -79,6 +79,7 @@ class TestMasterBom(unittest.TestCase):
         assembly = mb.get_assembly(1)
         self.assertEqual(len(assembly), 8)
 
+    '''
     def test_parts_bom_grouping(self):
         mb = MasterBom()
         mb.add_line(("1",1,None))
@@ -91,4 +92,5 @@ class TestMasterBom(unittest.TestCase):
         print(pb)
         self.assertEqual(len(pb), 3)
         self.assertEqual(list(pb["ref-des"])[0], 3)
+    '''
 
