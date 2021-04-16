@@ -86,7 +86,7 @@ def kicost(master):
 def ordering(master):
     fname = os.path.split(os.path.splitext(master)[0])[-1]
     bom = read_bare_bom(master)
-    df = order_by_ref_def(bom)
+    df = order_by_ref_des(bom)
     df.drop(columns=["notes", "function"])
     df.to_excel(f'{fname}_Ordering.xlsx', index=False)
 
