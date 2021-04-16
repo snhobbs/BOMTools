@@ -28,6 +28,9 @@ def order_by_ref_des(bom: pd.DataFrame) -> pd.DataFrame:
         qty.append(len(refs))
 
     clustered.insert(5, column="qty", value=qty)
+    for col in ["notes", "function", "assembly"]: # drop columns that are not maintained with clustering
+        if col in clustered.columns:
+            clustered.drop(columns=col, inplace=True)
     return clustered
 
 '''format a master bom into the kicost format'''
@@ -86,8 +89,7 @@ def kicost(master):
 def ordering(master):
     fname = os.path.split(os.path.splitext(master)[0])[-1]
     bom = read_bare_bom(master)
-    df = order_by_ref_des(bom)
-    df.drop(columns=["notes", "function"])
+    df = order_by_ref_des(bom._df)
     df.to_excel(f'{fname}_Ordering.xlsx', index=False)
 
 @click.option("--master", "-m", type=str, required=True, help="Master BOM file")
