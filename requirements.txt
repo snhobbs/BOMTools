@@ -1,3 +1,4 @@
 click
 pandas
+spreadsheet-wrangler >= 0.0.1
 

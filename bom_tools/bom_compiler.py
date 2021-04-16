@@ -3,6 +3,7 @@ bom_compiler.py
 Takes a master BOM and generates different types.
 '''
 import click
+from spreadsheet_wrangler import cluster
 from bom_tools import tools, read_bom_to_parts_store, read_file_to_formated_df
 from bom_tools import *
 import copy
@@ -20,45 +21,26 @@ def check_bom(master: str) -> bool:
     return bom.is_legal()
 
 '''ref-des will not be a tuple of all the matching lines, the rest of the line is taken to be the first in the file and carried forward'''
-def order_by_ref_def(bom: pd.DataFrame) -> pd.DataFrame:
-    grouped = bom._df.groupby("pn")
-    drop = []
-    ref_des = []
-    rows = []
-    for pn, parts in grouped:
-        refs = []
-        for i, row in parts.iterrows():
-            refs.append(row["ref-des"])
-        copy_row = copy.deepcopy(row)
-        rows.append(copy_row)
-        ref_des.append(tuple(refs))
-
+def order_by_ref_des(bom: pd.DataFrame) -> pd.DataFrame:
+    clustered = cluster(bom, on="pn", column="ref-des")
     qty = []
-    for refs in ref_des:
+    for refs in clustered["ref-des"]:
         qty.append(len(refs))
 
-    df = pd.DataFrame(rows)
-    df.drop(columns=["ref-des"], inplace=True)
-    print(df.columns)
-    df.insert(4, column="ref-des", value=ref_des)
-    df.insert(5, column="qty", value=qty)
-    return df
+    clustered.insert(5, column="qty", value=qty)
+    return clustered
 
 '''format a master bom into the kicost format'''
 def generate_kicost_bom(master: str) -> list:
-    parts, bom = read_bom_to_parts_store(master)
+    bom = read_bare_bom(master)
+    df = order_by_ref_des(bom._df)
     lines = []
-    full_df = bom._df#.merge(parts._df, how="left", on="pn")
-    print(full_df)
-    grouped = full_df.groupby("pn")
-    for pn, parts in grouped:
-        refs = []
-        for _, part in parts.iterrows():
-            print(part)
-            refs.append(part["ref-des"])
-            mfr_num = part["mfr-num"]#parts.get_part_line(pn)["mfr-num"]
-        line = "%s,%d,%s"%(mfr_num, len(refs), " ".join(refs))
-        #print(line)
+    for _, row in df.iterrows():
+        qty = row["qty"]
+        mfr_num = row["mfr-num"]
+        refs = row["ref-des"]
+        assert(qty == len(refs))
+        line = "%s,%d,%s"%(mfr_num, qty, " ".join(refs))
         lines.append(line)
     return lines
 
