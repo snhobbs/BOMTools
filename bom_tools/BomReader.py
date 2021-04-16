@@ -77,7 +77,10 @@ def read_file_to_formated_df(fname: str) -> pd.DataFrame:
     df = read_file_to_df(fname)
     columns = extract_columns_by_pseudonyms(df, column_names)
     formated_df = pd.DataFrame(columns)
-    formated_df = formated_df[formated_df["ref-des"] != np.nan]
+    return formated_df
+
+def expand_grouped_by_ref_des(df: pd.DataFrame) -> pd.DataFrame:
+    formated_df = df[df["ref-des"] != np.nan]
     expanded_rows = []
     for _, row in formated_df.iterrows():
         refs = row["ref-des"]
@@ -95,15 +98,18 @@ def read_parts_store(fname: str) -> PartsDataStore:
 
 def read_master_bom(fname: str) -> tuple:
     df = read_file_to_formated_df(fname)
-    return (PartsDataStore(df), MasterBom(df))
+    expanded_df = expand_grouped_by_ref_des(df)
+    return (PartsDataStore(expanded_df), MasterBom(expanded_df))
 
 def read_bom_to_parts_store(fname: str) -> tuple:
     return read_master_bom(fname)
 
 def read_bare_bom(fname: str) -> MasterBom:
     df = read_file_to_formated_df(fname)
-    return MasterBom(df)
+    expanded_df = expand_grouped_by_ref_des(df)
+    return MasterBom(expanded_df)
 
 def read_eda_bom(fname: str) -> EDABom:
-    eda = read_file_to_formated_df(fname)
-    return EDABom(eda)
+    df = read_file_to_formated_df(fname)
+    expanded_df = expand_grouped_by_ref_des(df)
+    return EDABom(expanded_df)
