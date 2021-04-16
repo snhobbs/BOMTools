@@ -8,6 +8,8 @@ Get row by ref des in dbom
 import pandas as pd
 import click
 
+from . import read_file_to_df
+
 quantity_col = "Quantity"
 price_col = "Extended Price"
 unit_price_col = "Unit Price"
@@ -27,8 +29,10 @@ def SetupBomFrame(dbom):
         dbom[price_col] = 0
 
 def read(eda_file, dbom_file, output_bom):
-    eda = pd.read_csv(eda_file, delimiter = ";")
-    dbom = pd.read_excel(dbom_file)
+    eda = read_file_to_df(eda_file)
+    dbom = read_file_to_df(dbom_file)
+    eda = filter_non_purchased_bom(df)
+
     SetupBomFrame(dbom)
     bom_lines = pd.DataFrame()
     for i, ref_des_line in enumerate(eda[ref_des_col]):

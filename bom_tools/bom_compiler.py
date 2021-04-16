@@ -3,7 +3,7 @@ bom_compiler.py
 Takes a master BOM and generates different types.
 '''
 import click
-from bom_tools import tools, read_bom_to_parts_store
+from bom_tools import tools, read_bom_to_parts_store, read_file_to_formated_df
 from bom_tools import *
 
 
@@ -37,6 +37,30 @@ def generate_kicost_bom(master: str) -> list:
         lines.append(line)
     return lines
 
+'''
+Expands a BOM from an EDA bom with heirachical parts. Duplicated parts have an underscore such as C1_x. Requires
+a bare BOM with the same ref des.
+'''
+def expand_hierarchical_bom(master: str, eda: str) -> MasterBom:
+    bom = read_bare_bom(master)
+    eda_bom = read_eda_bom(eda)
+
+    base_refs = [] # break the base part from the expanded
+    # Add the row back and merge the data frames on this row.
+    # Drop that row when exporting
+    for _, row in eda_bom._df.iterrows():
+        ref = row["ref-des"]
+        for div in ['_', '-', '.', ',']:
+            if len(ref.split(div)) > 1:
+                ref = div.join(ref.split(div)[:-1])
+                break
+        base_refs.append(ref)
+    eda_bom._df.rename(columns={"ref-des":"expanded-ref-des"}, inplace=True)
+    eda_bom._df.insert(0, "ref-des", base_refs)
+    eda_bom._df = eda_bom._df.merge(bom._df, on="ref-des", how="left")
+    eda_bom._df.drop(columns=["ref-des"], inplace=True)
+    eda_bom._df.rename(columns={"expanded-ref-des":"ref-des"}, inplace=True)
+    return eda_bom._df
 
 @click.group()
 def gr1():
@@ -82,6 +106,14 @@ def check(master):
         print("Bom Check Passed")
     else:
         print("Bom Check Failed")
+
+@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--eda", "-e", type=str, required=True, help="EDA File")
+@gr1.command()
+def expand_hierarchy(master: str, eda: str) -> MasterBom:
+    bom = expand_hierarchical_bom(master, eda)
+    fname = os.path.split(os.path.splitext(master)[0])[-1]
+    bom.to_excel(f'{fname}_Expanded.xlsx')
 
 if __name__ == "__main__":
     gr1()
