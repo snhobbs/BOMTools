@@ -1,4 +1,4 @@
-from spreadsheet_wrangler import cluster, uncluster, merge, compare, extract_columns_by_pseudonyms, read_csv_to_df, read_file_to_df
+from spreadsheet_wrangler import cluster, uncluster, compare, extract_columns_by_pseudonyms, read_csv_to_df, read_file_to_df
 from bom_tools import PartsDataStore, tools, MasterBom, EDABom
 import pandas as pd  # type: ignore
 import csv
