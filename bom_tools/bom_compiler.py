@@ -1,12 +1,14 @@
 '''
 bom_compiler.py
-Takes a master BOM and generates different types.
+Takes a bom BOM and generates different types.
 '''
 import click
 from spreadsheet_wrangler import cluster
-from bom_tools import tools, read_bom_to_parts_store, read_file_to_formated_df
 from bom_tools import *
+from bom_tools import MasterBom, read_bare_bom, read_eda_bom, EDABom
 import copy
+import pandas as pd # type:ignore
+import os
 
 class AssemblyBom:
     def __init__(self, df=None):
@@ -16,10 +18,6 @@ class AssemblyBom:
 Check BOM against a parts list, checks that the BOM is legal and
 returns a list of failures
 '''
-def check_bom(master: str) -> bool:
-    parts, bom = read_bom_to_parts_store(master)
-    return bom.is_legal()
-
 '''ref-des will not be a tuple of all the matching lines, the rest of the line is taken to be the first in the file and carried forward'''
 def order_by_ref_des(bom: pd.DataFrame) -> pd.DataFrame:
     clustered = cluster(bom, on="pn", column="ref-des")
@@ -33,17 +31,12 @@ def order_by_ref_des(bom: pd.DataFrame) -> pd.DataFrame:
             clustered.drop(columns=col, inplace=True)
     return clustered
 
-'''format a master bom into the kicost format'''
-def generate_kicost_bom(master: str) -> list:
-    bom = read_bare_bom(master)
-    df = order_by_ref_des(bom._df)
+'''format a bom bom into the kicost format'''
+def generate_kicost_bom(df: pd.DataFrame) -> list:
+    sorted_df = order_by_ref_des(df)
     lines = []
-    for _, row in df.iterrows():
-        qty = row["qty"]
-        mfr_num = row["mfr-num"]
-        refs = row["ref-des"]
-        assert(qty == len(refs))
-        line = "%s,%d,%s"%(mfr_num, qty, " ".join(refs))
+    for _, row in sorted_df.iterrows():
+        line = "%s,%d,%s"%(row["mfr-num"], row["qty"], " ".join(row["ref-des"]))
         lines.append(line)
     return lines
 
@@ -51,10 +44,7 @@ def generate_kicost_bom(master: str) -> list:
 Expands a BOM from an EDA bom with heirachical parts. Duplicated parts have an underscore such as C1_x. Requires
 a bare BOM with the same ref des.
 '''
-def expand_hierarchical_bom(master: str, eda: str) -> MasterBom:
-    bom = read_bare_bom(master)
-    eda_bom = read_eda_bom(eda)
-
+def expand_hierarchical_bom(master_bom: MasterBom, eda_bom: EDABom) -> MasterBom:
     base_refs = [] # break the base part from the expanded
     # Add the row back and merge the data frames on this row.
     # Drop that row when exporting
@@ -67,7 +57,7 @@ def expand_hierarchical_bom(master: str, eda: str) -> MasterBom:
         base_refs.append(ref)
     eda_bom._df.rename(columns={"ref-des":"expanded-ref-des"}, inplace=True)
     eda_bom._df.insert(0, "ref-des", base_refs)
-    eda_bom._df = eda_bom._df.merge(bom._df, on="ref-des", how="left")
+    eda_bom._df = eda_bom._df.merge(master_bom._df, on="ref-des", how="left")
     eda_bom._df.drop(columns=["ref-des"], inplace=True)
     eda_bom._df.rename(columns={"expanded-ref-des":"ref-des"}, inplace=True)
     return eda_bom._df
@@ -76,60 +66,64 @@ def expand_hierarchical_bom(master: str, eda: str) -> MasterBom:
 def gr1():
     pass
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--bom", "-b", type=str, required=True, help="BOM file")
 @gr1.command(help='''Three columns manf#, refs, qty''')
-def kicost(master):
-    lines = generate_kicost_bom(master)
-    fname = master + 'kicost.csv'
+def kicost(bom):
+    lines = generate_kicost_bom(bom)
+    fname = os.path.split(os.path.splitext(bom)[0])[-1]
+    fname = f'{fname}_kicost.csv'
     with open(fname, "w") as f:
         f.write("\n".join(lines))
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
-@gr1.command(help='''Bom ordered by value''')
-def ordering(master):
-    fname = os.path.split(os.path.splitext(master)[0])[-1]
-    bom = read_bare_bom(master)
-    df = order_by_ref_des(bom._df)
+@click.option("--bom", "-b", type=str, required=True, help="Bom file")
+@gr1.command("cluster", help='''Generate Bom ordered by value with clustered ref-des''')
+def cluster_command(bom):
+    fname = os.path.split(os.path.splitext(bom)[0])[-1]
+    master_bom = read_bare_bom(bom)
+    df = order_by_ref_des(master_bom._df)
     df.to_excel(f'{fname}_Ordering.xlsx', index=False)
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @click.option("--assembly", "-a", type=str, required=True, help="Assembly name")
-@gr1.command(help='''Expand a master bom into an assembly BOM. Blank assembly entries are included, a value in the assembly over rides the default.''')
-def assembly(master, assembly):
-    parts, bom = read_bom_to_parts_store(master)
-    assembly_bom = bom.get_assembly(assembly)
-    fname = os.path.split(os.path.splitext(master)[0])[-1]
+@gr1.command(help='''Expand a bom bom into an assembly BOM. Blank assembly entries are included, a value in the assembly over rides the default.''')
+def assembly(bom, assembly):
+    parts, master_bom = read_bom_to_parts_store(bom)
+    assembly_bom = master_bom.get_assembly(assembly)
+    fname = os.path.split(os.path.splitext(bom)[0])[-1]
     assembly_bom.to_excel(f'{fname}_Assembly_{assembly}.xlsx', index=False)
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @click.option("--parts", "-p", type=str, required=True, help="Parts data store")
-@gr1.command(help='''Take a bare Master BOM and expand the part details from a part store to generate a master BOM''')
-def fill(master, parts):
-    bom = read_bare_bom(master)
+@gr1.command(help='''Take a bare bom BOM and expand the part details from a part store to generate a master BOM''')
+def fill(bom, parts):
+    master_bom = read_bare_bom(bom)
     parts = read_parts_store(parts)
     if len(parts._df["pn"][0]) > 11:
         for _, row in parts._df.iterrows():
             row["pn"] = "-".join(row["pn"].split("-")[:-1]) # remove last section of part number
     bom_df = bom._df
     bom_df = bom_df.merge(parts._df, on="pn", how="left") # include all DNPs, unknown parts won't cause an error
-    fname = os.path.split(os.path.splitext(master)[0])[-1]
-    bom_df.to_excel(f'{fname}_MasterBom.xlsx', index=False)
+    fname = os.path.split(os.path.splitext(bom)[0])[-1]
+    bom_df.to_excel(f'{fname}_bomBom.xlsx', index=False)
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @gr1.command()
-def check(master):
-    if check_bom(master):
+def check(bom):
+    parts, master_bom = read_bom_to_parts_store(bom)
+    if bom.is_legal():
         print("Bom Check Passed")
     else:
         print("Bom Check Failed")
 
-@click.option("--master", "-m", type=str, required=True, help="Master BOM file")
+@click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @click.option("--eda", "-e", type=str, required=True, help="EDA File")
 @gr1.command()
-def expand_hierarchy(master: str, eda: str) -> MasterBom:
-    bom = expand_hierarchical_bom(master, eda)
-    fname = os.path.split(os.path.splitext(master)[0])[-1]
-    bom.to_excel(f'{fname}_Expanded.xlsx', index=False)
+def expand_hierarchy(bom: str, eda: str) -> None:
+    master_bom = read_bare_bom(bom)
+    eda_bom = read_eda_bom(eda)
+    expanded_bom = expand_hierarchical_bom(master_bom, eda_bom)
+    fname = os.path.split(os.path.splitext(bom)[0])[-1]
+    expanded_bom._df.to_excel(f'{fname}_Expanded.xlsx', index=False)
 
 if __name__ == "__main__":
     gr1()

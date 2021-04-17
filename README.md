@@ -4,7 +4,7 @@ Simplify the process of wrangling bills of materials with a platform and softwar
 This set of python tools allows for the generation of several types of BOMs for various different tasks.
 The tool set is spreadsheet focused with spreadsheets used as the input and output formats.
 
-The generic data transformations are handled by the package spreadsheet-wrangler[https://github.com/snhobbs/BOMTools/spreadsheet-wrangler].
+The generic data transformations are handled by the package spreadsheet-wrangler[https://github.com/snhobbs/spreadsheet-wrangler].
 The processes that are specific to bill of materials are handled here.
 
 https://github.com/xesscorp/kicad-3rd-party-tools#bom-tools
@@ -12,30 +12,33 @@ https://github.com/xesscorp/kicad-3rd-party-tools#bom-tools
 ## Usage Examples
 ### Expand a list of designators and unique identifiers with additional data
 To expand a list of reference designators and unique identifier of a part (bom.xlsx) with
-additionally available data (data_store.xlsx) use the spreadsheet_wrangler tool:
+additionally available data (data_store.xlsx) using the merge function:
 ```
-spreadsheet_wrangler.py merge --on="pn" -l bom.xlsx -r data_store.xlsx -p '{"pn":["Internal Part Number"]}'
+bom_compiler.py merge --on="pn" -b bom.xlsx -p data_store.xlsx
 ```
-Any unique identifier will work, examples are: manufacturers part number, internal part number, index to a database, etc.
+The column to use can be any unique identifier will work, examples are: manufacturers part number, internal part number, index to a database, etc.
 Equivilent names for columns are passed to the tool in a JSON format. A file titled bom_Merged_data_store_On_pn.xlsx will be generated with this command.
 
 ### Compare the data in two BOMS
 To compare the available data of two BOMs to compare function of spreadsheet_wrangler should be used. If a BOM was exported
 and needs to be checked against another with questionable history run:
 ```
-spreadsheet_wrangler.py compare --on="ref-des" -l bom.xlsx -r bom_Merged_data_store_On_pn.xlsx
+bom_compiler.py compare --first bom.xlsx --second bom_Merged_data_store_On_pn.xlsx
 ```
-This will compare the original BOM with the merged one from the first example. Comparisons are done column by column with rows matched by the value in the column passed with the argument "--on". This should be a unique for each instance of a part (i.e a ref des). 
-The shared columns will be checked as well as any passed in with the --columns argument. Discrepencies are printed to screen.
+This will compare the original BOM with the merged one from the first example.
+Comparisons are done column by column with rows lined up by the ref-des.
+Discrepencies are printed to screen.
 
 ### Generate a BOM sorted by the type of parts
 BOMs used for ordering, shipping, budgeting, or shipping to a CM are typically ordered by the type of part.
 
-The ordering BOM sorts by reference designator and combines the BOM into unique part types. This can then be used for ordering or quoting. This can be passed to a tool like kicost or used with supplier BOM Managers or the Octopart BOM Manager (recommended).
+The ordering BOM sorts by reference designator and combines the BOM into unique part types.
+This can then be used for ordering or quoting.
+This can be passed to a tool like kicost or used with supplier BOM Managers or the Octopart BOM Manager (recommended).
 
 To sort a BOM by the type of part and with a list of the reference designators run:
 ```
-spreadsheet_wrangler.py cluster --column="ref-des" --on="pn" -s bom.xlsx
+bom_compiler.py cluster --on="pn" -b bom.xlsx
 ```
 NOTE: Currently the first matching row with in the column passed with the "--on" argument is used for all the matching parts. This is not necessarily correct.
 
@@ -43,7 +46,7 @@ NOTE: Currently the first matching row with in the column passed with the "--on"
 To compare a BOM sorted by the part type (as shown above) with a BOM sorted by reference designator the BOM needs to be unpacked first and then compared.
 To unpack run:
 ```
-spreadsheet_wrangler.py uncluster --column="ref-des" -s bom_Clustered_On_ref-des.xlsx
+bom_compiler.py uncluster -b bom_Clustered_On_ref-des.xlsx
 ```
 This will seperate the lines like the original bom.xlsx. This BOM can now be compared using the compare function described above.
 
@@ -84,9 +87,9 @@ Breaks apart a bom into a specified assembly. Blank assembly fields are taken as
 
 To filter out the appropriate columns for an assembly run: 
 ```
-spreadsheet_wrangler.py filter --value="A" --column="ref-des" --on="assembly" --blank-defaults -s bom.xlsx
+bom_compiler.py filter --value="A" -b bom.xlsx
 ```
-For a column labeled assembly this will include all rows with the value A in the column "assembly" and any blank assembly entry is the value of ref-des is not already accounted for (the assembly value overloads the default).
+This will include all rows with the value A in the column "assembly" and any blank assembly entry is the value of ref-des is not already accounted for (the assembly value overloads the default).
 
 ## Assemblies
 Have a master BOM type that then is processed to produce the other necessary types. This can be created from a data base and then altered.

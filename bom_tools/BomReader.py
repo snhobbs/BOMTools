@@ -1,9 +1,11 @@
-from spreadsheet_wrangler import cluster, uncluster, compare, extract_columns_by_pseudonyms, read_csv_to_df, read_file_to_df
-from bom_tools import PartsDataStore, tools, MasterBom, EDABom
+from spreadsheet_wrangler import cluster, uncluster, compare, extract_columns_by_pseudonyms, read_csv_to_df, read_file_to_df, uncluster_regex
+from . MasterBom import MasterBom
+from . EDABom import EDABom
+from . PartsDataStore import PartsDataStore
 import pandas as pd  # type: ignore
 import csv
 import os
-import numpy as np
+import numpy as np # type: ignore
 import copy
 
 # key value pairs of the used name to acceptable names
@@ -25,7 +27,7 @@ def read_file_to_formated_df(fname: str) -> pd.DataFrame:
     return formated_df
 
 def expand_grouped_by_ref_des(df: pd.DataFrame) -> pd.DataFrame:
-    return uncluster(df, "ref-des")
+    return uncluster_regex(df, "ref-des", "[A-z]+[0-9]+")
 
 def read_parts_store(fname: str) -> PartsDataStore:
     df = read_file_to_formated_df(fname)

@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd # type: ignore
 
 
 '''Contains all the data necessary to do a part lookup. Index into this with a code.

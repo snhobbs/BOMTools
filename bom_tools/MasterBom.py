@@ -7,19 +7,8 @@ Internal repersentation of a Bill of Materials
 - Requires a Parts DataBase to get all the additional data from the code
 '''
 import pandas as pd # type: ignore
-import numpy as np
-from bom_tools import tools
-
-'''Remove the ref-des that are duplicates and have a universal config'''
-def remove_overlapping_ref_des(df):
-    if df["ref-des"].is_unique:
-        return df
-    for i, row in df.iterrows():
-        ref = str(row["ref-des"])
-        assembly = str(row["assembly"])
-        if list(df["ref-des"]).count(ref) > 1 and len(assembly) > 0:
-            df = df.drop(df.index[[i]])
-    return df
+import numpy as np # type: ignore
+import spreadsheet_wrangler
 
 class MasterBom:
     def __init__(self, df=None):
@@ -46,13 +35,5 @@ class MasterBom:
                 return False
         return True
 
-    def parts_frame(self) -> pd.DataFrame:
-        assert(self.is_legal())
-        return self._df.groupby("pn")
-        #return tools.group_by(self._df, "ref-des", "pn")
-
-    '''Exclude all parts not marked for this assembly'''
     def get_assembly(self, assembly):
-        # Cycle through selecting the parts marked explicitly
-        filtered_df = self._df.loc[(self._df["assembly"] == assembly) | (self._df["assembly"].isnull())]
-        return remove_overlapping_ref_des(filtered_df)
+        return spreadsheet_wrangler.filter_df(self._df, on="pn", value=assembly, column="ref-des", blank_defaults=True)
