@@ -17,11 +17,14 @@ column_names = {
     "mfr-num": ["Manufacturer Number", "Manufacturer Part Number"],
     "qty": ["quantity", "count"],
     "price": ["Unit Price"],
+    "value": ["val"],
+    "pattern": []
 }
 
 
 def read_file_to_formated_df(fname: str) -> pd.DataFrame:
     df = read_file_to_df(fname)
+    print(df.columns)
     columns = extract_columns_by_pseudonyms(df, column_names)
     formated_df = pd.DataFrame(columns)
     return formated_df

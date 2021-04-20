@@ -19,16 +19,18 @@ Check BOM against a parts list, checks that the BOM is legal and
 returns a list of failures
 '''
 '''ref-des will not be a tuple of all the matching lines, the rest of the line is taken to be the first in the file and carried forward'''
-def order_by_ref_des(bom: pd.DataFrame) -> pd.DataFrame:
-    clustered = cluster(bom, on="pn", column="ref-des")
+def order_by_ref_des(bom: pd.DataFrame, on: list = None, column: str ="ref-des") -> pd.DataFrame:
+    if on is None:
+        on=["pn"]
+    clustered = cluster(bom, on=on, column=column)
     qty = []
-    for refs in clustered["ref-des"]:
+    for refs in clustered[column]:
         qty.append(len(refs))
 
-    clustered.insert(5, column="qty", value=qty)
-    for col in ["notes", "function", "assembly"]: # drop columns that are not maintained with clustering
-        if col in clustered.columns:
-            clustered.drop(columns=col, inplace=True)
+    clustered.insert(min(len(clustered.columns), 3), column="qty", value=qty)
+    #for col in ["notes", "function", "assembly"]: # drop columns that are not maintained with clustering
+    #    if col in clustered.columns:
+    #        clustered.drop(columns=col, inplace=True)
     return clustered
 
 '''format a bom bom into the kicost format'''
@@ -76,12 +78,14 @@ def kicost(bom):
         f.write("\n".join(lines))
 
 @click.option("--bom", "-b", type=str, required=True, help="Bom file")
+@click.option("--on", type=str, multiple=True, help="Column to compare value")
+@click.option("--column", type=str, default="ref-des", help="Column to cluster into array")
 @gr1.command("cluster", help='''Generate Bom ordered by value with clustered ref-des''')
-def cluster_command(bom):
+def cluster_command(bom, on, column):
     fname = os.path.split(os.path.splitext(bom)[0])[-1]
     master_bom = read_bare_bom(bom)
-    df = order_by_ref_des(master_bom._df)
-    df.to_excel(f'{fname}_Ordering.xlsx', index=False)
+    df = order_by_ref_des(master_bom._df, on=list(on), column=column)
+    df.to_excel(f'{fname}_clustered_on_{column}.xlsx', index=False)
 
 @click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @click.option("--assembly", "-a", type=str, required=True, help="Assembly name")
@@ -101,10 +105,10 @@ def fill(bom, parts):
     if len(parts._df["pn"][0]) > 11:
         for _, row in parts._df.iterrows():
             row["pn"] = "-".join(row["pn"].split("-")[:-1]) # remove last section of part number
-    bom_df = bom._df
+    bom_df = master_bom._df
     bom_df = bom_df.merge(parts._df, on="pn", how="left") # include all DNPs, unknown parts won't cause an error
     fname = os.path.split(os.path.splitext(bom)[0])[-1]
-    bom_df.to_excel(f'{fname}_bomBom.xlsx', index=False)
+    bom_df.to_excel(f'{fname}_FilledBom.xlsx', index=False)
 
 @click.option("--bom", "-b", type=str, required=True, help="bom BOM file")
 @gr1.command()
