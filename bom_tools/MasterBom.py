@@ -36,4 +36,4 @@ class MasterBom:
         return True
 
     def get_assembly(self, assembly):
-        return spreadsheet_wrangler.filter_df(self._df, on="pn", value=assembly, column="ref-des", blank_defaults=True)
+        return spreadsheet_wrangler.filter_df(self._df, on="assembly", value=assembly, column="ref-des", blank_defaults=True)
