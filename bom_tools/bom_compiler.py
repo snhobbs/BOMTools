@@ -82,9 +82,13 @@ def kicost(bom):
 @click.option("--column", type=str, default="ref-des", help="Column to cluster into array")
 @gr1.command("cluster", help='''Generate Bom ordered by value with clustered ref-des''')
 def cluster_command(bom, on, column):
+    if len(on) > 0:
+        on = list(on)
+    else:
+        on = None
     fname = os.path.split(os.path.splitext(bom)[0])[-1]
     master_bom = read_bare_bom(bom)
-    df = order_by_ref_des(master_bom._df, on=list(on), column=column)
+    df = order_by_ref_des(master_bom._df, on=on, column=column)
     df.to_excel(f'{fname}_clustered_on_{column}.xlsx', index=False)
 
 @click.option("--bom", "-b", type=str, required=True, help="bom BOM file")

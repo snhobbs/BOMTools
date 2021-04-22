@@ -24,7 +24,6 @@ column_names = {
 
 def read_file_to_formated_df(fname: str) -> pd.DataFrame:
     df = read_file_to_df(fname)
-    print(df.columns)
     columns = extract_columns_by_pseudonyms(df, column_names)
     formated_df = pd.DataFrame(columns)
     return formated_df
@@ -38,7 +37,8 @@ def read_parts_store(fname: str) -> PartsDataStore:
 
 def read_master_bom(fname: str) -> tuple:
     df = read_file_to_formated_df(fname)
-    expanded_df = expand_grouped_by_ref_des(df)
+    #expanded_df = expand_grouped_by_ref_des(df)
+    expanded_df = df
     return (PartsDataStore(expanded_df), MasterBom(expanded_df))
 
 def read_bom_to_parts_store(fname: str) -> tuple:
@@ -46,7 +46,8 @@ def read_bom_to_parts_store(fname: str) -> tuple:
 
 def read_bare_bom(fname: str) -> MasterBom:
     df = read_file_to_formated_df(fname)
-    expanded_df = expand_grouped_by_ref_des(df)
+    #expanded_df = expand_grouped_by_ref_des(df)
+    expanded_df = df
     return MasterBom(expanded_df)
 
 def read_eda_bom(fname: str) -> EDABom:
